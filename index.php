@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
 
-if (!is_file(ROOT . '/storage/installed.lock')) {
+if (getenv('INSTALLED') !== '1' && !is_file(ROOT . '/storage/installed.lock')) {
     if (is_dir(ROOT . '/setup')) redirect(url('setup/'));
     http_response_code(503);
     exit('Site is not installed. Upload the /setup folder and open /setup/.');

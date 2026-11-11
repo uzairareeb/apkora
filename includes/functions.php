@@ -28,12 +28,19 @@ function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
         $c = $GLOBALS['cfg'];
-        $dsn = 'mysql:host=' . ($c['db_host'] ?? 'localhost') . ';dbname=' . ($c['db_name'] ?? '') . ';charset=utf8mb4';
-        $pdo = new PDO($dsn, $c['db_user'] ?? '', $c['db_pass'] ?? '', [
+        $port = (int)($c['db_port'] ?? 3306);
+        $dsn = 'mysql:host=' . ($c['db_host'] ?? 'localhost') . ';port=' . ($port > 0 ? $port : 3306) . ';dbname=' . ($c['db_name'] ?? '') . ';charset=utf8mb4';
+        $opts = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-        ]);
+        ];
+        if (!empty($c['db_ssl'])) {
+            foreach (['/etc/ssl/certs/ca-certificates.crt', '/etc/pki/tls/certs/ca-bundle.crt'] as $ca) {
+                if (is_file($ca)) { $opts[PDO::MYSQL_ATTR_SSL_CA] = $ca; break; }
+            }
+        }
+        $pdo = new PDO($dsn, $c['db_user'] ?? '', $c['db_pass'] ?? '', $opts);
     }
     return $pdo;
 }

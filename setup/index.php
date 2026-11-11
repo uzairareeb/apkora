@@ -1,7 +1,7 @@
 <?php
 require dirname(__DIR__) . '/includes/bootstrap.php';
 
-if (is_file(ROOT . '/storage/installed.lock')) {
+if (getenv('INSTALLED') === '1' || is_file(ROOT . '/storage/installed.lock')) {
     @unlink(__FILE__); @rmdir(__DIR__);
     exit('Already installed. Please delete the /setup folder manually if it still exists.');
 }
