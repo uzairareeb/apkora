@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+if (defined('GH_BOOTSTRAPPED')) return;
+define('GH_BOOTSTRAPPED', true);
 define('ROOT', dirname(__DIR__));
 if (session_status() === PHP_SESSION_NONE) {
     $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
