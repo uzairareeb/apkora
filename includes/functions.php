@@ -5,6 +5,7 @@ function e($v): string { return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SU
 function base_path(): string {
     static $b = null;
     if ($b === null) {
+        if (getenv('VERCEL')) { $b = ''; return $b; } // app is served from the domain root via rewrites
         $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
         $dir = preg_replace('#/(admin|setup)$#', '', $dir);
         $b = rtrim($dir, '/');
@@ -13,7 +14,8 @@ function base_path(): string {
 }
 function url(string $p = ''): string { return base_path() . '/' . ltrim($p, '/'); }
 function site_origin(): string {
-    $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    $proto = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    $https = $proto === 'https' || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 }
 function site_url(string $p = ''): string {
@@ -36,8 +38,9 @@ function db(): PDO {
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
         if (!empty($c['db_ssl'])) {
+            $sslCa = defined('Pdo\\Mysql::ATTR_SSL_CA') ? \Pdo\Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA;
             foreach (['/etc/ssl/certs/ca-certificates.crt', '/etc/pki/tls/certs/ca-bundle.crt'] as $ca) {
-                if (is_file($ca)) { $opts[PDO::MYSQL_ATTR_SSL_CA] = $ca; break; }
+                if (is_file($ca)) { $opts[$sslCa] = $ca; break; }
             }
         }
         $pdo = new PDO($dsn, $c['db_user'] ?? '', $c['db_pass'] ?? '', $opts);
@@ -132,7 +135,6 @@ function http_get(string $url, int $timeout = 20): ?string {
     ]);
     $r = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return ($r !== false && $code >= 200 && $code < 300) ? (string)$r : null;
 }
 function image_ext(int $type): ?string {
