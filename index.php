@@ -17,6 +17,18 @@ $path = trim($path, '/');
 $GLOBALS['route_path'] = $path;
 $seg = $path === '' ? [] : explode('/', $path);
 $route = $seg[0] ?? '';
+
+// Admin pages are direct .php files; on hosts that only execute the front
+// controller (Vercel), serve them through this router instead.
+if ($route === 'admin') {
+    $adminFile = basename((string)($seg[1] ?? 'index.php'));
+    if (!preg_match('/^[A-Za-z0-9_]+\.php$/', $adminFile)) $adminFile = 'index.php';
+    $adminPath = ROOT . '/admin/' . $adminFile;
+    if (!is_file($adminPath)) not_found();
+    chdir(ROOT . '/admin');
+    require $adminPath;
+    exit;
+}
 $pageNo = max(1, (int)($_GET['page'] ?? 1));
 $PER = 24;
 

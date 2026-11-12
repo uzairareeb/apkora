@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/includes/bootstrap.php';
-if (!is_file(ROOT . '/storage/installed.lock')) redirect(url('setup/'));
+if (getenv('INSTALLED') !== '1' && !is_file(ROOT . '/storage/installed.lock')) redirect(url('setup/'));
 migrate();
 if (!defined('ADMIN_PUBLIC')) require_admin();
 header('X-Robots-Tag: noindex, nofollow');
