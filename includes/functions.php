@@ -148,6 +148,7 @@ function save_upload(array $f): ?string {
     return 'uploads/' . $name;
 }
 function save_remote_image(string $url): ?string {
+    if (!is_writable(ROOT . '/uploads')) return null; // read-only host (Vercel): keep the remote URL
     $host = (string)parse_url($url, PHP_URL_HOST);
     if (!preg_match('/(^|\.)googleusercontent\.com$/i', $host)) return null;
     $data = http_get($url, 20);
